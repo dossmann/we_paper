@@ -12,8 +12,8 @@
 \begin{tikzpicture}
 
 \begin{axis}[%
-width=2in,
-height=1.5in,
+width=2.2in,
+height=1.2in,
 at={(0,0)},
 scale only axis,
 xmin=12,
@@ -138,9 +138,9 @@ axis background/.style={fill=white}
 \end{axis}
 
 \begin{axis}[%
-width=2in,
-height=1.5in,
-at={(2.6in,0in)},
+width=2.2in,
+height=1.2in,
+at={(2.7in,0in)},
 scale only axis,
 xmin=12,
 xmax=25,

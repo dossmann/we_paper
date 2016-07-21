@@ -14,8 +14,8 @@
 \begin{tikzpicture}
 
 \begin{axis}[%
-width=2.1in,
-height=1.0in,
+width=2.2in,
+height=1.2in,
 at={(0.68in,0.596in)},
 scale only axis,
 xmode=log,

@@ -383,17 +383,26 @@ Linear interpolation is then used to recover models that are between two grid po
 Such a representation is not only efficient in terms of computational storage requirements but also immediately relates to intuition about linear systems since, evaluated pointwise in the parameter domain, the model recovers the LTI system that would have been obtained from linearization at that particular wind speed.   
 For the Clipper model, four different fixed wind speeds of 12\,m/s, 16\,m/s, 20\,m/s, and 25\,m/s are selected to form the LPV model.
 These wind speeds cover the whole region 3 range of operation.
-The rate bounds, i.\,e., the maximum variation of the wind speed, are selected as $\pm$1\,m/s$^2$. COMMENT ON THESE CHOICES?
+The rate bounds, i.\,e., the maximum variation of the average wind speed, are selected as $\pm$1\,m/s$^2$.
 
 
-\begin{figure}[b]
+\begin{figure}[hbt]
+\begin{subfigure}{0.5\linewidth}
 	\centering
-	\input{./tikz/pz.tikz}
+	\input{./tikz/pz.tikz} 
 	\caption{Pole migration for variation in the wind speed.}
 	\label{fig:pz}	
+\end{subfigure}
+	\hfill
+\begin{subfigure}{0.5\linewidth}
+		\centering 
+		\input{./tikz/mbc_openloop.tikz}
+	\caption{Normalized frequency responses from the cyclic pitch commands to the yaw and pitch moments on the nacelle for 12\,m/s wind speed.}
+	\label{fig:linmodl}
+\end{subfigure}	
 \end{figure}
 
-Fig.~\ref{fig:pz} depicts the poles of the resulting LTI models in dependence on the wind speed and highlights the four models that are used to form the LPV system. The pole near the origin corresponds to the rotary velocity of the turbine and nearly acts as a pure integrator.
+Fig.~\ref{fig:pz} depicts the poles of the resulting LTI models in dependence on the wind speed and highlights the four models that are used to form the LPV system. The pole near the origin corresponds to the rotary velocity of the turbine and nearly acts as a pure integrator. 
 The tower's first side-to-side and fore-aft modes at around 2\,rad/s show low
 damping but remain almost constant over the wind speed.
 The flapwise modes increase in frequency in the region 2 and 2.5 operation.
@@ -403,31 +412,31 @@ One of the flapwise modes and one of the edgewise modes can be seen to approach 
 An overlapping of the turbine modes with these frequencies potentially causes problems, as normal operation of the turbine excites dynamics at these frequencies.
 The flapwise mode that approaches the 3P frequency is considered safe, as it is rather well damped.  
 The  edgewise mode, on the other hand, is likely to cause unwanted effects in region 3, due to its poor damping. 
-The third edgewise mode is located around 13\,rad/s and is not shown in the figure.
+The third edgewise mode is located around 13\,rad/s and is not shown in the figure. 
+It should also be noted that the slightly unstable pole that corresponds to the rotary position of the nacelle is removed by truncation since it is of no interest for the control problem. 
 
 
 
 \section{Linear Parameter Varying Control Design}
 
-Fig.~\ref{fig:linmodl} shows the Bode plot from cyclic blade-pitch commands to
-cyclic moments, normalized by the DC-gains of the diagonal elements.
- These cyclic moments induce yaw and pitch loads on the nacelle. 
+Figure~\ref{fig:linmodl} shows the frequency response from cyclic blade-pitch commands to
+cyclic moments, evaluated on the parameter grid and normalized by the DC-gains of the diagonal elements at 12\,m/s wind speed.
+These cyclic moments induce yaw and pitch loads on the nacelle. 
 Notably, the off-diagonal elements have magnitude values of around $-10$\,dB in the low frequency range.
 For the design of classical individual blade-pitch controllers with two SISO integral control loops, this value is considered sufficiently small to neglect cross coupling, although it is far from perfect decoupling.
-However, when trying to actively mitigate the loads at higher frequencies, the coupling becomes more important with magnitudes comparable to and even above those of the diagonal elements. 
-This observation is the main motivation for the use of multivariable control to
-achieve load reduction at larger frequencies.
+However, when trying to actively mitigate the loads at higher frequencies, the coupling becomes more important with magnitudes comparable to, and even above, those of the diagonal elements. 
+This observation is the main motivation for the use of multivariable control to achieve load reduction at larger frequencies.
 % Besides the decoupling of the
 % cyclic pitch inputs from the yaw and pitch moments on the off-diagonals,
 
 %
-\begin{figure}[b]
-	\centering
-		\input{./tikz/G.tikz}
-	\caption{Normalized Bode magnitude plot of the 2-by-2 design system from the cyclic pitch commands
-		 to the yaw and pitch moments on the nacelle for 12\,m/s wind speed.}
-	\label{fig:linmodl}	
-\end{figure}
+%\begin{figure}[b]
+%	\centering
+%		\input{./tikz/mbc_openloop_large.tikz}
+%	\caption{Normalized Bode magnitude plot of the 2-by-2 design system from the cyclic pitch commands
+%		 to the yaw and pitch moments on the nacelle for 12\,m/s wind speed.}
+%	\label{fig:linmodl}	
+%\end{figure}
 
 
 %Another main aspect which needs to be taken into account is that, due to the
@@ -446,15 +455,14 @@ achieve load reduction at larger frequencies.
 
 
 %\subsection*{$H_\infty$ Closed Loop Shaping Strategy}
-The 1P load in the rotating frame translates to a constant contribution and
-contributions in 3P and higher harmonics in the fixed frame. The classical
-two-integral-loops approach makes use of this and achieves 1P load
-reduction in the rotating frame by aiming at the constant load
-in the fixed frame. In terms of the MBC-transformed and averaged system, this
-can be thought of as a sensitivity reduction at zero frequency.
-The 2P load in the rotating frame shows up mainly as a 3P load in the fixed frame. Adapting the control strategy to also reduce 2P loads thus involves sensitivity reduction both at zero and at the 3P frequency. 
+The 1P load in the rotating frame translates to a constant contribution and contributions in 3P and higher harmonics in the fixed frame. 
+The classical two-integral-loops approach makes use of this and achieves 1P load reduction in the rotating frame by aiming at the constant load in the fixed frame. 
+In terms of the MBC-transformed and averaged system, this can be thought of as a sensitivity reduction at zero frequency.
+The 2P load in the rotating frame shows up mainly as a 3P load in the fixed frame. Adapting the control strategy to also reduce rotating 2P loads thus involves sensitivity reduction both at zero and at the 3P frequency. 
 
-$H_\infty$ control is particularly useful for this task, since it allows to directly ``shape'' the closed-loop frequency response to meet these requirements. A direct extension to LPV systems, usually referred to as induced $L_2$-norm control, is also readily available. Again, a key feature of the approach is, that linear intuition is to a certain extend preserved in the parameter-varying problem.
+$H_\infty$ control is particularly useful for this task, since it allows to directly ``shape'' the closed-loop frequency response to meet these requirements. 
+A direct extension to LPV systems, referred to as induced $L_2$-norm control, is also readily available \cite{WuEtAl_96IJRNC_Induced}. 
+Again, a key feature of the approach is that linear intuition is to a certain extend preserved.
 
 The induced $L_2$-norm of an LPV system $H_\rho$ from input $d$ to output $e$ is defined as
 \begin{equation}
@@ -573,12 +581,18 @@ Two cyclic loads are fed back to generate two cyclic command signals. Thus, all 
 
 The ratio $\sfrac{w_1}{w_2}$ determines the importance of rejecting input disturbances over output disturbances. For the present design, it is chosen as 10 to emphasize the importance of rejecting input disturbances. The weights are consequently selected as $w_1 = 10$ and $w_2 = 1$.
 %
-The filter $w_u$ penalizes the controller output with the goal to limit control effort. Further, high frequency control action that may result in reaching the rate limits of the actuators should be avoided. Thus, $w_u$ is selected with a high gain at frequencies beyond the actuator bandwidth and a low gain for frequencies below the actuator bandwidth. For the Clipper Liberty turbine, the actuator bandwidth is 
-10--15\,rad/s and so $w_u$ is selected with a 0\,dB crossing at 6\,rad/s in order to reduce control authority above this frequency.
+The filter $w_u$ penalizes the controller output with the goal to limit control effort. Further, high frequency control action that may result in hitting the actuators' rate limits should be avoided. 
+Thus, $w_u$ is selected with a high gain at frequencies beyond the actuator bandwidth and a low gain for frequencies below the actuator bandwidth. 
+For the Clipper Liberty turbine, the actuator bandwidth is 10--15\,rad/s and so $w_u$ is selected with a 0\,dB crossing at 6\,rad/s in order to reduce control authority above this frequency.
 The controller is consequently forced to roll off below the actuator bandwidth. 
-The filter $w_e$ weighs the control error, i.\,e. it shapes the sensitivity and disturbance sensitivity functions. A high gain of $w_e$ at a given frequency dictates a sensitivity reduction at that frequency, which results in high controller gains and improves disturbance rejection.
+The filter $w_e$ weighs the control error, i.\,e. it shapes the sensitivity and disturbance sensitivity functions. 
+A high gain of $w_e$ at a given frequency dictates a sensitivity reduction at that frequency, which results in high controller gains and improves disturbance rejection.
 %
-Since the constant load in the fixed frame needs to be suppressed analog to the classical integral control strategy, the weight is selected to have a high gain in the low-frequency range up to 0.3\,rad/s. Additionally, the controller should actively suppress the loads at the 3P frequency of  about 4.8\,rad$/$s. Thus, additional penalty is added in the vicinity of the 3P frequency by multiplying the low frequency weight with an inverse notch filter, tuned to that frequency. Fig.~\ref{fig:weights} shows magnitude plots of the weighting filters.
+Since the constant load in the fixed frame needs to be suppressed analog to the classical integral control strategy, the weight is selected to have a high gain in the low-frequency range up to 0.3\,rad/s. Additionally, the controller should actively suppress the loads at the 3P frequency of  about 4.8\,rad$/$s. Thus, additional penalty is added in the vicinity of the 3P frequency by multiplying the low frequency weight with an inverse notch filter, tuned to that frequency. 
+
+In previous work~\cite{OssmannEtAl_16DSCC_Load}, an $H_\infty$ controller was designed using the single LTI model that represents the system at 12\,m/s wind speed. This controller achieved good performance for that operating condition 
+
+Fig.~\ref{fig:weights} shows magnitude plots of the weighting filters.
 Their transfer functions are
 \begin{equation}
 	\begin{split}
@@ -587,9 +601,9 @@ Their transfer functions are
 	\end{split}
 \end{equation}
 
-Tuning is performed simultaneously on the four LTI models, using the Robust Control Toolbox's standard $H_\infty$ synthesis routine \texttt{hinfsyn}. Doing so results in four independent $H_\infty$ controllers, that are then evaluated on the linear model corresponding to their respective design point. Once a satisfactory set of weighting filters is found, the problem is handed over to the LPVTools' routine \texttt{lpvsyn}, that solves the convex optimization problem~\eqref{eq:synthesislmi} and yields a single LPV controller. This LPV controller is then evaluated, both on all grid-point models and on the nonlinear Liberty turbine model. 
+is performed simultaneously on the four LTI models, using the Robust Control Toolbox's standard $H_\infty$ synthesis routine \texttt{hinfsyn}. Doing so results in four independent $H_\infty$ controllers, that are then evaluated on the linear model corresponding to their respective design point. Once a satisfactory set of weighting filters is found, the problem is handed over to the LPVTools' routine \texttt{lpvsyn}, that solves the convex optimization problem~\eqref{eq:synthesislmi} and yields a single LPV controller. This LPV controller is then evaluated, both on all grid-point models and on the nonlinear Liberty turbine model. 
 
-The reasoning behind this strategy is to first evaluate the maximum achievable performance for the individual wind conditions and to perform the iterative tuning procedure on a problem that is easily solved in split seconds rather than minutes or even hours. No LPV controller can outperform the $H_\infty$ controller on its design point, since the induced $L_2$-norm is lower bounded by the $H_\infty$-norm. The goal is thus to recover performance at the grid points as good as possible, by iteratively adding basis functions for $X_\rho$ and $Y_\rho$. Following this strategy makes tuning intuitive and fast, while the LPV synthesis automates controller scheduling with stability and performance guarantees. 
+%The reasoning behind this strategy is to first evaluate the maximum achievable performance for the individual wind conditions and to perform the iterative tuning procedure on a problem that is easily solved in split seconds rather than minutes or even hours. No LPV controller can outperform the $H_\infty$ controller on its design point, since the induced $L_2$-norm is lower bounded by the $H_\infty$-norm. The goal is thus to recover performance at the grid points as good as possible, by iteratively adding basis functions for $X_\rho$ and $Y_\rho$. Following this strategy makes tuning intuitive and fast, while the LPV synthesis automates controller scheduling with stability and performance guarantees. 
 
 The reduction in the disturbance sensitivity is confirmed by the singular value
 plots depicted in Fig.~\ref{fig:SG_lti_grid}.
@@ -606,7 +620,7 @@ In the high frequency regime above roughly 5\,rad/s, open loop and closed loop a
 \end{figure}  
   
  
-\begin{figure}[t]
+\begin{figure}[t] 
 \begin{subfigure}{0.45\linewidth} 
 \centering
 		\input{./tikz/SG_lti_grid.tikz} 
@@ -783,7 +797,7 @@ composite materials.
 
 To quantify the improvements, the damage equivalent loads on
 the blades and the nacelle are computed. Table xxx presents the loads
-using the baseline control law alone, with classical and with $H_\infty$
+using the baseline control law alone, with classical and with $H_\infty$ SHOULDN'T THIS BE LPV??
 individual blade-pitch control. Both, the two loop integral and the $H_\infty$ controller are able to reduce the
 out-of-plane bending moment on the blades. While the two integral feedback loops
 mainly suppress the constant load in the fixed frame, the

@@ -13,7 +13,7 @@
 \begin{axis}[%
 width=2.2in,
 height=1.2in,
-at={(-0.3in,0in)},
+at={(0in,0in)},
 scale only axis,
 separate axis lines,
 every outer x axis line/.append style={black},
@@ -830,7 +830,7 @@ axis background/.style={fill=white}
 \begin{axis}[%
 width=2.2in,
 height=1.2in,
-at={(-0.3in,-1.5in)},
+at={(-0in,-1.5in)},
 scale only axis,
 separate axis lines,
 every outer x axis line/.append style={black},
@@ -1611,7 +1611,7 @@ axis background/.style={fill=white}
 \begin{axis}[%
 width=2.2in,
 height=1.2in,
-at={(-3in,0)},
+at={(-2.5in,0)},
 scale only axis,
 separate axis lines,
 every outer x axis line/.append style={black},
@@ -2375,7 +2375,7 @@ axis background/.style={fill=white}
 \begin{axis}[%
 width=2.2in,
 height=1.2in,
-at={(-3in,-1.5in)},
+at={(-2.5in,-1.5in)},
 scale only axis,
 separate axis lines,
 every outer x axis line/.append style={black},
