@@ -1,0 +1,820 @@
+% wedoc.tex V1.0, 17 June 2010
+
+\documentclass[times]{weauth}
+
+\usepackage{moreverb}
+\usepackage[eulergreek]{sansmath}
+\usepackage{multirow}
+\usepackage{graphicx} % for pdf, bitmapped graphics files
+\usepackage{mathptmx} % assumes new font selection scheme installed
+\usepackage{times} % assumes new font selection scheme installed
+\usepackage{amsmath} % assumes amsmath package installed
+\usepackage{amssymb}  % assumes amsmath package installed
+%\usepackage{amsthm}
+\usepackage{pgfplots}
+\usepackage{subcaption}
+\usepackage{setspace}
+%\usepackage{cleveref}
+\usepackage{multirow}
+\usepackage{xfrac,mathtools,dsfont}
+
+% Load and set up tikz
+\usepackage{tikz}
+\usetikzlibrary{positioning, plotmarks, arrows, calc, shadings, patterns,
+decorations.pathreplacing, calc}
+
+% set font for tikz
+\usepackage{helvet}
+\usepackage[eulergreek]{sansmath}
+\pgfplotsset{
+	tick label style = {font=\footnotesize\sansmath\sffamily},
+	every axis label = {font=\footnotesize\sansmath\sffamily},
+	label style = {font=\small\sansmath\sffamily},
+	legend style = {font=\sansmath\sffamily},
+	title style = {font=\small\sansmath\sffamily}
+}
+
+ 
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\ba}{\left [ \begin{array}}
+	\newcommand{\ea}{\end{array} \right ]}
+	\newcommand{\of}[1]{\!\left(#1\right)}
+%\usepackage[dvips,colorlinks,bookmarksopen,bookmarksnumbered,citecolor=red,urlcolor=red]{hyperref}
+
+\newcommand\BibTeX{{\rmfamily B\kern-.05em \textsc{i\kern-.025em b}\kern-.08em
+T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\def\volumeyear{2016}
+ 
+% \def\baselinestretch{2} % Douple Spacing for review
+
+\begin{document} 
+
+\runningheads{D.~Ossmann et al.}{A demonstration of the \journalabb\
+class file}
+
+\articletype{RESEARCH ARTICLE} 
+
+%\title{Robust Control for load reduction of a Liberty Wind Turbine}
+\title{ Load Reduction on a Liberty Wind Turbine with Linear Parameter-Varying Control }
+
+\author{D. Ossmann\affil{1}, J. Theis\affil{2}, and Peter Seiler\affil{1}}
+
+\address{\affilnum{1} Aerospace Engineering and Mechanics, University of Minnesota, USA \\
+		 \affilnum{2} Institute of Control Systems, Hamburg University of Technology, Germany}
+
+
+\corraddr{University of Minnesota 110 Union St SE, Minneapolis, MN 55455. E-mail: dossmann@umn.edu}
+
+\begin{abstract}
+		The increasing size of modern wind turbines also increases the structural
+		loads on the turbine caused by effects like turbulences or asymmetries in
+		the inflowing wind field. Consequently, the use of advanced control algorithms
+		for active load reduction has become a relevant part of current wind turbine
+		control systems. In this paper, an $H_\infty$-norm optimal multivariable
+		control design approach for an individual blade-pitch control law is presented.
+		It reduces the structural loads both on the rotating and non-rotating parts of
+		the turbine. Classical individual blade-pitch control
+		strategies rely on single control loops with low bandwidth. The proposed
+		approach makes it possible to use a higher bandwidth since it takes
+		into account coupling at higher frequencies. A controller is
+		designed for the utility-scale 2.5\,MW Liberty research turbine
+		operated by the University of Minnesota. Stability and performance are verified using
+		a high-fidelity nonlinear benchmark model.
+\end{abstract}
+
+\keywords{wind turbine control; load reduction; robust control }
+
+\maketitle
+
+%\footnotetext[2]{Please ensure that you use the most up to date
+%class file,
+%available from the WE Home Page at\\
+%\href{http://www3.interscience.wiley.com/journal/6276/home}{\texttt{http://www3.interscience.wiley.com/journal/6276/home}}
+%}
+ 
+\section{INTRODUCTION}
+The size of modern wind turbines has been increasing over the last several years in
+order to lift wind turbines to a higher power production level. This upscaling
+goes hand in hand with an increase in structural flexibility and as a
+consequence also increases the loads on the rotating and non-rotating parts of
+the turbine.
+These loads are caused by effects like wind shear, tower shadow, and turbulence.
+They can have significant impacts on the life cycle of the turbine.
+The demand of sophisticated  control algorithms to actively and robustly
+mitigate these additional loads %above rated wind speeds
+has consequently gathered an increased industrial and academic interest.
+
+Classical variable-speed wind turbine control aims to maximize the power
+output in the different operating regions. Below rated speed, torque
+control is used to maintain the maximum power output at the maximum extractable power of
+the flow. Above rated wind speed, collective blade-pitch control is used to limit power
+production and rotary hub speed to a specified value by pitching all blades to
+a common angle. Additional algorithms have been developed in the last decade to mitigate different loads on the
+turbine.
+In \cite{Bossanyi00}, a good overview of possible load mitigation control
+techniques is provided. For example, filters  to damp resonances on the tower
+bending and the drive-train shaft torsion load are proposed. Further, it
+is stated that active feedback control of the measured tower acceleration can
+help to suppress the dynamic tower fore-aft load by collective blade pitch. Modern
+wind turbines offer the possibility of even more advanced load reduction by
+means of pitching each blade individually. This individual blade-pitch
+control can effectively reduce the blade's out-of-plane loads. It requires, however, additional load measurements,
+either on the rotating or the non-rotating frame \cite{Bossanyi03a} and individual actuators on each blade.
+
+Generally, a wind turbine consists of rotating parts (hub, blades, shaft) and
+non-rotating parts (nacelle, tower, etc.). Thus, its dynamical properties depend
+on the rotary hub position, which makes a wind turbine a periodic dynamic
+system. Standard control approaches for linear time invariant (LTI) systems are
+thus not directly applicable for the design of individual blade-pitch controllers. To
+overcome this issue, the multi-blade-coordinate (MBC) transformation was
+introduced to the wind energy field. The MBC transformation allows the projection 
+of a system's rotating quantaties onto
+non-rotating coordinates. The basic idea of this transformation can be
+illustrated by an observer in the fixed coordinate frame of the turbine.
+Instead of experiencing the three blade degrees of freedom individually, the
+observer experiences their summed effects. For a three bladed wind turbine,
+these summed effects can be described by the superposition of one symmetric
+degree of freedom, where all blades bend in the same direction, and two
+asymmetric degrees of freedom, where the bending of the individual blades is out
+of phase \cite{bir97}. The two asymmetric out-of-plane degrees of freedom can be
+efficiently influenced by individual blade-pitch and are tackled in this paper. Note that
+due to the non-zero pitch angle of the blades, the out-of-plane degrees of
+freedom are a combination of edgewise and flapwise degrees of freedoms.
+
+Most state-of-the-art individual blade-pitch controllers make use of
+MBC-transformed  out-of-plane blade load signals and try to mitigate the two
+asymmetric loads. Two single-input-single-output (SISO) proportional-integral
+or integral
+controllers are used to suppress the low frequency components of these loads.
+The actual blade-pitch commands are then generated by inverse MBC
+transformation, converting the control signals back to real blade-pitch
+commands.
+
+Tools have been developed to not only transform the measured signals, but the
+whole periodic system  into the non-rotating frame and approximate it by an
+LTI model \cite{Bir08}. Analyzing these models shows that the two
+asymmetric out-of-plane loads are adequately decoupled in the low frequency regime.
+For exactly this reason, the commonly used two-SISO-loops strategy works is adequate.
+%This is the actual reason why the commonly used two-SISO-loops strategy works satisfactory. 
+As the decoupling argument only holds for low frequencies in the
+fixed frame, such controllers aim only at reducing the static loads in the
+fixed frame, that correspond to the 1P loads in the rotating frame.
+The term ``P'' refers to \textit{per revolution} and indicates multiples of
+the rotational frequency of the turbine.
+The dominant (yaw and pitch) loads on the nacelle are located at 3P in
+the transformed frame. They are difficult to reduce with the classical
+strategy due to strong coupling effects that appear at higher frequencies.
+
+Approximating the periodic model with an LTI  model also
+enabled the application of sophisticated, model-based control approaches.
+Multivariable control designs were investigated in \cite{Bossanyi03a} based on a
+linear quadratic regulator and in  \cite{Geyler08} based on ${H}_\infty$-norm
+optimal control. Both controllers were shown to yield similar results
+as the classical two-SISO-loops strategy.
+One main aspect not addressed in these articles is
+the fact that multivariable control can be used to increase the controller
+bandwidth beyond what is possible with the classical strategy. The controller
+can then not only mitigate the static load, but also the 3P load in the
+MBC-transformed  system. Thus in this paper, a multivariable control design
+approach and a clear and distinct tuning strategy for a controller that can
+mitigate both dominant blade and nacelle loads is presented. The control strategy is
+applied to the linearized model of the Clipper Liberty C96 research turbine
+operated by the University of Minnesota. The ultimate goal is to test the
+$H_\infty$ controller on the real turbine in the near future.
+
+%The design of an advanced IPC controller is a task of the \textit{Virtual Wind
+%Simulator with Advanced Control \& Aeroelastic Model for Improving the
+% Operation of Wind Farms} project to increase today's wind energy production and cost
+%efficiency.
+
+\section{MULTIBLADE COORDINATE TRANSFORMATION} The MBC transformation is used
+to transform quantities from the rotating frame to the non-rotating frame.  For
+example, the three out-of-plane degrees of freedom of the individual blades can
+be transformed to the fixed frame, where they result in a collective degree of
+freedom, in which all blades move synchronously fore, and aft and two asymmetric
+degrees of freedom, in which the blades move asymmetrically fore and aft.
+Similar physical explanations can be found for the in-plane motions of the
+blades \cite{bir97}. This paper focuses on the blades' out-of-plane degrees of
+freedom, as they can be effectively influenced with individual blade-pitch
+control.
+
+For a better understanding of the MBC transformation, a short review is given in
+this section.
+The transformation matrix from the rotary frame to the fixed frame is defined by
+\begin{equation}\label{eq:MBC}
+T(\phi) =
+\frac{2}{3}\ba{ccc}
+1/2 & 1/2 &  1/2\\
+\text{cos}(\phi) &  \text{cos}(\phi+ \frac{2}{3}\pi) &  \text{cos}(\phi+ \frac{4}{3}\pi)\\
+\text{sin}(\phi) &  \text{sin}(\phi+ \frac{2}{3}\pi) &  \text{sin}(\phi+ \frac{4}{3}\pi)\\
+\ea,
+\end{equation}
+where $\phi$ is the rotary position of the first blade. The out-of-plane loads
+$M$, measured on the three blades, can be transformed with (\ref{eq:MBC}) to the
+non-rotating frame, resulting in one symmetric and two asymmetric loads
+\cite{bir97}. The symmetric load is strongly connected to the thrust of the
+turbine, which is a byproduct of the moment (and power) generation. It can be
+effectively controlled via collective blade-pitch. Individual blade-pitch, on
+the other hand, can be efficiently used to mitigate the two asymmetric loads
+that appear as a pitch moment $M_\text{cos}$ and a yaw moment $M_\text{sin}$
+on the nacelle in the fixed frame.
+%
+%
+%
+%
+%
+Using the shorthand notation
+\begin{equation}\label{eq:projection}
+V^T\!(\phi) = 	\ba{ccc}
+\text{cos}(\phi) &  \text{cos}(\phi+ \frac{2}{3}\pi) &  \text{cos}(\phi+ \frac{4}{3}\pi)\\
+\text{sin}(\phi) &  \text{sin}(\phi+ \frac{2}{3}\pi) &  \text{sin}(\phi+ \frac{4}{3}\pi)\\
+\ea
+\end{equation}
+for the last two rows of the matrix in (\ref{eq:MBC}),
+these cyclic moments are expressed in terms of the individual blade moments as
+\begin{equation}\label{eq:mbc_output}
+\begin{bmatrix}
+M_\text{cos} \\ M_\text{sin}
+\end{bmatrix}
+=
+\frac{2}{3} V^T\!(\phi)\,
+\begin{bmatrix}
+M_{1} \\ M_{2} \\ M_{3}
+\end{bmatrix}.
+\end{equation}
+%
+The inverse of the MBC transformation is given by
+\begin{equation}\label{eq:iMBC}
+T^{-1}(\phi) =
+\ba{ccc}
+1& \text{cos}( \phi) & \text{sin}(\phi) \\
+1& \text{cos}(\phi+ \frac{2}{3}\pi) &  \text{sin}(\phi+ \frac{2}{3}\pi) \\
+1&\text{cos}(\phi+ \frac{4}{3}\pi) &  \text{sin}(\phi+ \frac{4}{3}\pi) \\
+\ea.
+\end{equation}
+This transformation is required for the implementation of an individual blade-pitch controller,
+designed in the MBC-transformed reference frame.
+The two cyclic control signals $\beta_\text{cos}$ and $\beta_\text{sin}$,
+generated by the controller, need to be
+transformed back into three blade-pitch angles using the second and third
+column of \eqref{eq:iMBC}. This again is more conveniently expressed as
+\begin{equation}\label{eq:mbc_input}
+\begin{bmatrix}
+\beta_1 \\ \beta_2 \\ \beta_3
+\end{bmatrix}
+=
+V(\phi)\,
+\begin{bmatrix}
+\beta_\text{cos} \\ \beta_\text{sin}
+\end{bmatrix}.
+\end{equation}
+The individual blade-pitch commands $\beta_\text{ind}$ are added to the
+collective pitch command $\beta_\text{col}$, which is generated by the baseline
+control law from the rotational speed $\omega$ and its rated value $\omega_{\text{rated}}$.
+The complete control architecture is depicted in Fig.~\ref{fig:architecture}
+including the region 3 rated generator torque command  $\tau_{\text{rated}}$.
+
+%It should be noted, that the decoupled treatment of collective and
+%individual pitch commands is possible only if the dynamics are
+%sufficiently decoupled from each other.
+
+\begin{figure}[bt]
+	\centering
+	\input{./tikz/WT.tikz}
+	\caption{Control architecture for individual
+		blade-pitch control.}
+	\label{fig:architecture}	
+\end{figure}
+
+
+\section{CLIPPER WIND TURBINE}
+The wind turbine considered in this paper is the
+utility-scale three-bladed Clipper Liberty 2.5\,MW  research turbine of the
+\mbox{EOLOS} Wind Energy Research Consortium located at the UMore Park in
+Rosemount, MN, and shown in Fig.~\ref{fig:wt}.
+It has a hub height of 80$\,$m and a rotor diameter of 96$\,$m.
+It is common to classify the operating range into standstill (region 1),
+variable speed (region 2), and constant speed (region 3).
+The turbine's cut-in wind
+speed is 3$\,$m$/$s, from which on a $k \omega^2$ feedback is used to
+control the generator torque.
+The range from 8 to 12$\,$m$/$s is used to transition between the
+control laws of region 2 and region 3 and is referred to as region 2.5.
+The rated region 3 operation starts at about 12$\,$m$/$s. A scheduled proportional-integral
+baseline control law is used in this region to maintain rated rotor speed
+and moment via collective blade-pitch. The turbine cuts out at a wind speed of 25$\,$m$/$s.
+
+
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=0.5\linewidth]{wt2.jpg}		
+	\caption{UMN's research turbine \cite{eolos}.
+	}
+	\label{fig:wt}
+\end{figure}
+
+\subsection*{Nonlinear Model} An industrial high-fidelity nonlinear simulation model
+of the Clipper wind turbine in the Fatigue, Aerodynamics, Structures, and Turbulence (FAST)
+simulator \cite{Fastv7_05} is used. The overall model features a detailed structural
+model with various degrees of freedom of the turbine and simulates steady aerodynamics. Linear
+first order models for actuators and sensors are included. The generator
+dynamics are neglected, as the power electronics on modern utility-scale wind
+turbines ensure a much faster torque response time than encountered in the rest
+of the system.
+The model is augmented with the certified  Clipper baseline control law for the different
+wind regimes as described above. This baseline law includes protection functions
+that reduce the torque and power overshoots in region 3 in case of turbulence.
+
+\subsection*{Linear Parameter-Varying Model} The FAST code provides algorithms to trim the model around a defined operating point and to derive linearized models for different rotary positions \cite{Fastv7_05}. In this way, a periodic state space model in
+a gridded format is available.
+% EDIT BY JULIAN
+The model is of 17$^{\text{th}}$ order and includes the rotary shaft velocity,
+four states to describe the tower fore-aft and side-to-side flexibility, as well
+as six  states to describe the first flapwise bending and six states to describe
+the first edgewise bending of the blades in the rotary frame.
+
+The MBC transformation cannot only be applied to signals but also allows the conversion of a periodic state space model from a rotating into a non-rotating coordinate system.
+The derivation of the state transformation is not provided here [SHOULD WE ADDIT?] due to a lack of space, but interested readers find clear derivations in \cite{Bir08,Seiler_13}.
+As for the signals, the flapwise and edgewise states are transformed to symmetric
+and asymmetric states, also referred to as collective and cyclic states \cite{bir97}. 
+While the MBC transformation still results in a periodic system,
+analyses have shown that this transformed system can be approximated well by an
+LTI model obtained from averaging over the rotary position \cite{Bir08}.
+Such a model serves as the design model for the individual blade-pitch
+controller in this paper.
+Its inputs are the cyclic pitch commands $\beta_\text{cos}$ and
+$\beta_\text{sin}$ as defined in \eqref{eq:mbc_input} and its outputs are
+the cyclic moments $M_\text{cos}$ and $M_\text{sin}$ as defined in
+\eqref{eq:mbc_output}.
+It can be shown that cyclic pitch commands do not influence the collective
+load of the turbine. 
+This is an important fact, as the individual blade-pitch control algorithm should not change the thrust and the torque of the turbine in order to maintain the power output at its desired level.
+
+% Julian starting 14.07.2016 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+Having dealt with the periodicity of the system by applying the MBC transformation, it remains to address the variation of the dynamics for different wind speeds.
+The framework of linear parameter-varying (LPV) systems is a natural choice in this case. 
+LPV systems are dynamic systems whose state space representations depend continuously on a time-varying external scheduling parameter $\rho\of{t}$:
+\begin{equation}\label{eq:lpv_parametric}
+G_\rho\colon
+\begin{cases}
+\dot{x}\!\left(t\right) =
+A\!\left(\rho\of{t}\right)\,x\!\left(t\right) +
+B\!\left(\rho\of{t}\right)\,u\!\left(t\right)
+			  \\
+z\!\left(t\right) =
+C\!\left(\rho\of{t}\right)\,x\!\left(t\right) +
+D\!\left(\rho\of{t}\right)\,y\!\left(t\right)\;.
+\end{cases}
+\end{equation} 
+The parameter  $\rho\colon \mathds{R}\!\mapsto\!\mathcal{P}$ is confined to a compact set $\mathcal{P}\subset\mathds{R}$ of allowable parameter values. 
+Additionally, the parameter rates $\dot{\rho}\colon
+\mathds{R} \!\mapsto\! \mathcal{V}$ are restricted to a polyhedron
+$\mathcal{V}= \left\{\dot{\rho}\in\mathds{R} \mid |\dot{\rho}| \leq \nu\right\}$ and hence the set of all admissible parameter trajectories is $\mathcal{A} = \left\{\rho(t) \mid \rho\of{t}\in\mathcal{P} \wedge \dot{\rho}\of{t}\in\mathcal{V} \quad \forall t\in\mathds{R}\right\}$.
+
+% The continuous matrix functions $A\colon\mathcal{P}\!\mapsto\!\mathds{R}^{n_x\times n_x}$, $B\colon\mathcal{P}\!\mapsto\!\mathds{R}^{n_x\times n_w}$, $C\colon\mathcal{P}\!\mapsto\!\mathds{R}^{n_z\times n_x}$, $D\colon\mathcal{P}\!\mapsto\!\mathds{R}^{n_z\times n_w}$, the state $x\colon \mathds{R}\!\mapsto\!\mathds{R}^{n_x}$, input $u\colon \mathds{R}\!\mapsto\!\mathds{R}^{n_w}$, and output $y\colon \mathds{R}\!\mapsto\!\mathds{R}^{n_z}$ constitute a state space model
+
+
+Such a model can be obtained by applying the previously described procedure (linearization, MBC-transformation, and averaging) for different wind speeds along the baseline controller scheduling trajectory, defined by generator torque and blade pitch angle.
+Doing so yields a set of LTI models that together form a grid representation of the LPV system with the wind speed as its scheduling parameter. 
+Linear interpolation is then used to recover models that are between two grid points.
+Such a representation is not only efficient in terms of computational storage requirements but also immediately relates to intuition about linear systems since, evaluated pointwise in the parameter domain, the model recovers the LTI system that would have been obtained from linearization at that particular wind speed.   
+For the Clipper model, four different fixed wind speeds of 12\,m/s, 16\,m/s, 20\,m/s, and 25\,m/s are selected to form the LPV model.
+These wind speeds cover the whole region 3 range of operation.
+The rate bounds, i.\,e., the maximum variation of the wind speed, are selected as $\pm$1\,m/s$^2$. COMMENT ON THESE CHOICES?
+
+
+\begin{figure}[b]
+	\centering
+	\input{./tikz/pz.tikz}
+	\caption{Pole migration for variation in the wind speed.}
+	\label{fig:pz}	
+\end{figure}
+
+Fig.~\ref{fig:pz} depicts the poles of the resulting LTI models in dependence on the wind speed and highlights the four models that are used to form the LPV system. The pole near the origin corresponds to the rotary velocity of the turbine and nearly acts as a pure integrator.
+The tower's first side-to-side and fore-aft modes at around 2\,rad/s show low
+damping but remain almost constant over the wind speed.
+The flapwise modes increase in frequency in the region 2 and 2.5 operation.
+After the rated rotation speed of the turbine is reached, the damping of these modes increases with increasing wind speed while the frequency remains unchanged.
+The red lines in the figure represent the 1P and 3P frequencies of the turbine in region 3.
+One of the flapwise modes and one of the edgewise modes can be seen to approach the 3P frequency.
+An overlapping of the turbine modes with these frequencies potentially causes problems, as normal operation of the turbine excites dynamics at these frequencies.
+The flapwise mode that approaches the 3P frequency is considered safe, as it is rather well damped.  
+The  edgewise mode, on the other hand, is likely to cause unwanted effects in region 3, due to its poor damping. 
+The third edgewise mode is located around 13\,rad/s and is not shown in the figure.
+
+
+
+\section{Linear Parameter Varying Control Design}
+
+Fig.~\ref{fig:linmodl} shows the Bode plot from cyclic blade-pitch commands to
+cyclic moments, normalized by the DC-gains of the diagonal elements.
+ These cyclic moments induce yaw and pitch loads on the nacelle. 
+Notably, the off-diagonal elements have magnitude values of around $-10$\,dB in the low frequency range.
+For the design of classical individual blade-pitch controllers with two SISO integral control loops, this value is considered sufficiently small to neglect cross coupling, although it is far from perfect decoupling.
+However, when trying to actively mitigate the loads at higher frequencies, the coupling becomes more important with magnitudes comparable to and even above those of the diagonal elements. 
+This observation is the main motivation for the use of multivariable control to
+achieve load reduction at larger frequencies.
+% Besides the decoupling of the
+% cyclic pitch inputs from the yaw and pitch moments on the off-diagonals,
+
+%
+\begin{figure}[b]
+	\centering
+		\input{./tikz/G.tikz}
+	\caption{Normalized Bode magnitude plot of the 2-by-2 design system from the cyclic pitch commands
+		 to the yaw and pitch moments on the nacelle for 12\,m/s wind speed.}
+	\label{fig:linmodl}	
+\end{figure}
+
+
+%Another main aspect which needs to be taken into account is that, due to the
+%point-wise linearization around the trajectory, the dominant 1P load in the
+%rotary frame is not represented in the model.
+%This load shows up as a
+%constant contribution and contributions in 3P and higher harmonics in the fixed
+%frame.
+%To overcome this, additional dynamics at the disturbance inputs of the linear model can be
+%considered. For the $H_\infty$ design approach, this would mean to consider an
+%additional input to the system.
+%Alternatively, frequency weighting of the disturbance sensitivity function
+%can be employed to force the controller to produce adequate commands around the
+%3P frequency.
+%The latter approach is used in this paper and described in more detail in the next section.
+
+
+%\subsection*{$H_\infty$ Closed Loop Shaping Strategy}
+The 1P load in the rotating frame translates to a constant contribution and
+contributions in 3P and higher harmonics in the fixed frame. The classical
+two-integral-loops approach makes use of this and achieves 1P load
+reduction in the rotating frame by aiming at the constant load
+in the fixed frame. In terms of the MBC-transformed and averaged system, this
+can be thought of as a sensitivity reduction at zero frequency.
+The 2P load in the rotating frame shows up mainly as a 3P load in the fixed frame. Adapting the control strategy to also reduce 2P loads thus involves sensitivity reduction both at zero and at the 3P frequency. 
+
+$H_\infty$ control is particularly useful for this task, since it allows to directly ``shape'' the closed-loop frequency response to meet these requirements. A direct extension to LPV systems, usually referred to as induced $L_2$-norm control, is also readily available. Again, a key feature of the approach is, that linear intuition is to a certain extend preserved in the parameter-varying problem.
+
+The induced $L_2$-norm of an LPV system $H_\rho$ from input $d$ to output $e$ is defined as
+\begin{equation}
+	\|H_\rho\|_\infty =  \sup_{
+	\begin{smallmatrix}
+	d \in L_2 \setminus \{0\} \\ \rho\in\mathcal{A} 
+	\end{smallmatrix}
+	}
+	\frac{\|e\|_2}{\|d\|_2}
+\end{equation}
+The induced $L_2$-norm measures the maximum gain of $H_\rho$, i.\,e., the largest
+amplification of $L_2$ input signals over all frequencies, input/output directions, and admissible parameter trajectories. 
+For an LTI system $H(s)$, i.\,e., for an admissible parameter space $\mathcal{A}$ that consists of only a single point, this definition yields the $H_\infty$-norm that is usually expressed as $\sup_\omega \bar{\sigma}(H(j \omega))$ where $\bar{\sigma}(\cdot)$ denotes the largest singular value.
+The control problem is formulated as the closed-loop
+interconnection shown in Fig.~\ref{fig:genplant} and performance is measured
+by the induced $L_2$-norm from $d=[\begin{smallmatrix} d_1 \\ d_2 \end{smallmatrix}]$ to $e=[\begin{smallmatrix} e_1 \\ e_2 \end{smallmatrix}]$. 
+The corresponding input-to-output map is
+\begin{equation}\label{eq:genp}
+	\ba{cc}  e_1 \\  e_2 \ea =
+	\ba{cc} W_u &   \\    & W_e   \ea
+	\ba{cc} -T_i &  K_\rho S_{\text{o}} \\ -G_\rho S_{\text{i}}   & S_{\text{o}}   \ea
+	\ba{cc} W_1 &   \\    & W_2   \ea
+	\ba{cc}  d_1  \\ d_2 \ea.
+\end{equation}
+The plant model is denoted $G_\rho$, $K_\rho$ is the controller, $S_\text{o} =
+(I+G_\rho\,K_\rho)^{-1}$ is the output sensitivity function, $S_{\text{i}} = (I+K_\rho\,G_\rho)^{-1}$  is the input sensitivity function, and $T_{\text{i}} = K_\rho\,G_\rho\,
+(I+K_\rho\,G_\rho)^{-1}$ is the complementary input sensitivity function \cite{Skoge_05}. 
+Further, $K_\rho S_\text{o}$ is called control sensitivity and $G_\rho S_\text{i}$ is called disturbance sensitivity. The explicit parameter dependence of the sensitivity functions is omitted for brevity, although these also are parameter dependent.
+
+
+\begin{figure}[tbh]
+	\centering \input{./tikz/weighting_control_design.tikz}
+	\caption{Generalized plant interconnection for the individual blade-pitch
+	$H_\infty$ control design.}
+	\label{fig:genplant}
+\end{figure}
+
+
+%
+A parameter dependent dynamic controller $K_\rho$ that ensures stability of the closed loop and guarantees an upper bound on the induced $L_2$-norm from $d$ to $e$ can be synthesized by solving a convex optimization problem \cite{WuEtAl_96IJRNC_Induced}. Specifically, let an admissible parameter set $\mathcal{A}$ and the open loop LPV system interconnection
+\begin{equation}\label{eq:generalizedplant}
+P_\rho\colon
+\begin{cases}
+\begin{bmatrix}
+\dot{x} \\ e_1 \\ e_2 \\ y
+\end{bmatrix}
+=
+\begin{bmatrix}
+A & B_{11} & B_{12} & B_{2} \\
+C_{11} & D_{1111} & D_{1112} & 0 \\
+C_{12} & D_{1121} & D_{1122} & I \\
+C_2    & 0 & I    & 0
+\end{bmatrix}
+\!
+\begin{bmatrix}
+x \\ d_1 \\ d_2 \\ u
+\end{bmatrix}
+\end{cases}
+\end{equation}
+be given. The special structure in~\eqref{eq:generalizedplant} is not restrictive, as it can be achieved through loop-shifting and scalings under mild conditions, see \cite{SLC89}. Denote
+$C_1^T = \begin{bsmallmatrix} C_{11}^T & C_{12}^T\end{bsmallmatrix}$, $B_1=\begin{bsmallmatrix} B_{11} &
+B_{12}\end{bsmallmatrix}$, and
+$\begin{bsmallmatrix} D_{111\bullet} \\ D_{112\bullet}\end{bsmallmatrix}
+= \begin{bsmallmatrix} D_{1111} & D_{1112} \\ D_{1121} &D_{1122}\end{bsmallmatrix}
+= \begin{bsmallmatrix} D_{11\bullet1} & D_{11\bullet2}\end{bsmallmatrix}$.
+% 
+The controller can be constructed by closed formulae from the open loop plant matrices and the feasible values of $X_\rho$, $Y_\rho$, and $\gamma$ of the optimization problem \cite{Wu95,WYP+96}:
+%\begin{subequations}
+\begin{align}
+\min_{\gamma,X_\rho,Y_\rho}\gamma \text{ such that for all
+$\rho\in\mathcal{A}$: } \nonumber\\ 
+\begin{bmatrix}
+X_\rho & \frac{1}{\gamma}\,I \\ \star & Y_\rho
+\end{bmatrix}
+\succ 0,
+\quad %\\
+\begin{bmatrix}
+\Lambda_X-B_2\,B_2^T & X_\rho\,C_{11}^T &
+\frac{1}{\gamma}\left(B_1-B_2\,D_{112\bullet}\right)\\
+\star & -I & \frac{1}{\gamma}\,D_{111\bullet} \\
+\star & \star & -I
+\end{bmatrix}
+\prec 0,
+\quad% \\
+\begin{bmatrix}
+\Lambda_Y-C_2^T\,C_2 & Y_\rho\,B_{11} &
+\frac{1}{\gamma}\left(C_1^T-C_2^T\,D_{11\bullet2}^T\right)\\  \star & -I &
+\frac{1}{\gamma}\,D_{11\bullet1}^T \\
+\star & \star & -I
+\end{bmatrix}
+\prec 0
+\label{eq:synthesislmi}
+\end{align}
+%\end{subequations}
+The expression $M\succ(\!\prec)\,0$ denotes $M$ is positive (negative) definite,
+$\Lambda_X = X_\rho\,\left(A-B_2\,C_{12}\right)^T+\left(A-B_2\,C_{12}\right)\,X_\rho
+-\frac{\partial X_\rho}{\partial \rho}\,\dot{\rho}$,
+$\Lambda_Y = 
+Y_\rho\,\left(A-B_{12}\,C_{2}\right)+\left(A-B_{12}\,C_{2}\right)^T\,Y_\rho+\frac{\partial
+Y_\rho}{\partial \rho}\,\dot{\rho}$,
+and $\star$ denotes symmetric completion.
+%
+In order to arrive at a tractable formulation, the positive definite matrix functions  $X_\rho\colon\mathcal{A}\!\mapsto\!\mathds{R}^{n_x\times
+n_x}$ and $Y_\rho\colon\mathcal{A}\!\mapsto\!\mathds{R}^{n_x\times n_x}$ need to be formulated in terms of a predefined set of basis functions as
+\begin{equation}
+X_\rho = \sum_{i=1}^{a} f_i(\rho)\,X_i,\quad X_i\in\mathds{R}^{n_x\times n_x}  \quad\text{ and }\quad Y_\rho = \sum_{i=1}^{b} g_i(\rho)\,Y_i,\quad Y_i\in\mathds{R}^{n_x\times n_x}\;.
+\end{equation}
+%
+It is important to emphasize that the condition of the optimization problem is only sufficient and that the loss in performance is related to the conservatism that is introduced by restricting the search space for $X_\rho$ and $Y_\rho$. Thus, more basis functions usually increase performance.
+Numerical algorithms that implement this optimization are readily available, e.\,g.,  the routine \texttt{lpvsyn} in the LPVTools toolbox \cite{BalasEtAl_15_LPVTools,HjartarsonEtAl_15LPVS_LPVTools}.
+
+
+
+The crucial part of the design is to select weights that impose a desired loop shape on the four sensitivity functions. 
+Two cyclic loads are fed back to generate two cyclic command signals. Thus, all weightings are 2-by-2 matrices. There is, however, no apparent reason to use different weights for the individual channels and hence the matrices are selected as $W_1 = w_1\,I_2$, $W_2 = w_2 \,I_2$, $W_e = w_e\,I_2$ and $W_u = w_u\,I_2$. Static weights $w_1$ and $w_2$ are used at the disturbance inputs. 
+
+The ratio $\sfrac{w_1}{w_2}$ determines the importance of rejecting input disturbances over output disturbances. For the present design, it is chosen as 10 to emphasize the importance of rejecting input disturbances. The weights are consequently selected as $w_1 = 10$ and $w_2 = 1$.
+%
+The filter $w_u$ penalizes the controller output with the goal to limit control effort. Further, high frequency control action that may result in reaching the rate limits of the actuators should be avoided. Thus, $w_u$ is selected with a high gain at frequencies beyond the actuator bandwidth and a low gain for frequencies below the actuator bandwidth. For the Clipper Liberty turbine, the actuator bandwidth is 
+10--15\,rad/s and so $w_u$ is selected with a 0\,dB crossing at 6\,rad/s in order to reduce control authority above this frequency.
+The controller is consequently forced to roll off below the actuator bandwidth. 
+The filter $w_e$ weighs the control error, i.\,e. it shapes the sensitivity and disturbance sensitivity functions. A high gain of $w_e$ at a given frequency dictates a sensitivity reduction at that frequency, which results in high controller gains and improves disturbance rejection.
+%
+Since the constant load in the fixed frame needs to be suppressed analog to the classical integral control strategy, the weight is selected to have a high gain in the low-frequency range up to 0.3\,rad/s. Additionally, the controller should actively suppress the loads at the 3P frequency of  about 4.8\,rad$/$s. Thus, additional penalty is added in the vicinity of the 3P frequency by multiplying the low frequency weight with an inverse notch filter, tuned to that frequency. Fig.~\ref{fig:weights} shows magnitude plots of the weighting filters.
+Their transfer functions are
+\begin{equation}
+	\begin{split}
+		w_u &= 500 \,\frac{s + 3.464}{s + 3464}\\
+		w_e &= 0.1 \, \frac{s + 3}{s + 0.03} \, \frac{s^2 + 0.49s + 24}{s^2 + 6.93s + 24}.
+	\end{split}
+\end{equation}
+
+Tuning is performed simultaneously on the four LTI models, using the Robust Control Toolbox's standard $H_\infty$ synthesis routine \texttt{hinfsyn}. Doing so results in four independent $H_\infty$ controllers, that are then evaluated on the linear model corresponding to their respective design point. Once a satisfactory set of weighting filters is found, the problem is handed over to the LPVTools' routine \texttt{lpvsyn}, that solves the convex optimization problem~\eqref{eq:synthesislmi} and yields a single LPV controller. This LPV controller is then evaluated, both on all grid-point models and on the nonlinear Liberty turbine model. 
+
+The reasoning behind this strategy is to first evaluate the maximum achievable performance for the individual wind conditions and to perform the iterative tuning procedure on a problem that is easily solved in split seconds rather than minutes or even hours. No LPV controller can outperform the $H_\infty$ controller on its design point, since the induced $L_2$-norm is lower bounded by the $H_\infty$-norm. The goal is thus to recover performance at the grid points as good as possible, by iteratively adding basis functions for $X_\rho$ and $Y_\rho$. Following this strategy makes tuning intuitive and fast, while the LPV synthesis automates controller scheduling with stability and performance guarantees. 
+
+The reduction in the disturbance sensitivity is confirmed by the singular value
+plots depicted in Fig.~\ref{fig:SG_lti_grid}.
+For low frequencies  ($<$0.8$\,$rad$/$s) and around the 3P  ($\approx$4.8$\,$rad$/$s), the magnitude of the closed loop lies clearly below the open loop plot. 
+As an inevitable consequence of Bode's sensitivity integral \cite{Skoge_05,stein03}, the sensitivity is increased between 0.8\,rad/s and 4\,rad/s. 
+In the high frequency regime above roughly 5\,rad/s, open loop and closed loop are indistinguishable. This confirms the low control activity beyond that frequency.
+ 
+\begin{figure}[t] 
+	\centering
+		\input{./tikz/weigths.tikz}
+	\caption{Selected filter weights $w_e$ (\ref{line:w2}) and $w_u$
+	(\ref{line:w1}).} 
+	\label{fig:weights}	
+\end{figure}  
+  
+ 
+\begin{figure}[t]
+\begin{subfigure}{0.45\linewidth} 
+\centering
+		\input{./tikz/SG_lti_grid.tikz} 
+\caption{Singular value plot of the disturbance sensitivity  open loop (dashed) and for pointwise designs (solid).}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.45\linewidth}
+\centering
+		\input{./tikz/SG_lti_vs_lpv.tikz}
+\caption{Singular value plot of the disturbance sensitivity for pointwise designs (dashed) and LPV controller with quadratic basis functions (solid).}
+\end{subfigure}
+\caption{xxx.}
+\end{figure} 
+ 
+ 
+Since the choice of weights leads to a reasonable result at the individual grid points, the LPV synthesis is started. Both constant and linearly parameter dependent basis functions result in an infeasible optimization problem.
+Quadratic basis functions for $X_\rho$ and $Y_\rho$, 
+i.\,e.  $X_\rho = X_0 + X_1\,\rho + 0.5\,X_2\,\rho^2$ and $Y_\rho = Y_0 + Y_1\,\rho + 0.5\,Y_2\,\rho^2$,
+finally yield a solution. The required computational time is 20\,minutes on a desktop PC. The quadratic basis functions almost completely recover the LTI performance, which is confirmed by evaluating the disturbance sensitivity on the grid points for the LPV controller in Fig.~\ref{fig:SG_lpv_grid}. Adding further basis functions is thus deemed unnecessary.  
+
+%quadratic takes 1210 seconds with GAM = 40.72
+
+As a consequence of using the parameter dependent basis functions, the LPV controller also depends on the parameter rates as described in more detail in~\cite{Wu95}. 
+The variation across this added parameter dimension is however considered negligible, as indicated by the comparison of controller singular values for minimum, maximum, and zero rate in Fig.~\ref{fig:ratedependence}. The controller is finally implemented in a lookup table representation with linear interpolation for the state space matrix elements.
+It feeds back the MBC-transformed out-of-plane blade loads $M_{\cos}$  and $M_{\sin}$ to the cyclic pitch commands $\beta_{\cos}$  and $\beta_{\sin}$. In the low-frequency range, the diagonal elements are dominant. Around the 3P frequency, the off-diagonal elements have a comparably large magnitude. This is an important aspect of the proposed multivariable control law, as these couplings are ignored by the classical individual blade-pitch control design that consequently only works at low frequencies.
+
+
+\begin{figure}[t]
+\begin{subfigure}{0.45\linewidth} 
+\centering
+		\input{./tikz/lpv_K_minusrate.tikz} 
+\caption{Frequency response of the controller evaluated at grid points for maximum negative rate.}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.45\linewidth}
+\centering
+		\input{./tikz/lpv_K_plusrate.tikz} 
+\caption{Frequency response of the controller evaluated at grid points for maximum positive rate.}
+\end{subfigure}
+\caption{Evaluation of the controllers rate dependence.}\label{fig:ratedependence}
+\end{figure} 
+
+ 
+\section{Verification}
+\subsection{Linear validation using robustness Margins}
+The most common metric to quantify robustness for a control system is given by
+the classical gain and phase margins. The former specifies how much gain
+variation a single loop-transfer function can tolerate before instability
+occurs. The second measures the amount of phase loss that this loop can
+tolerate. Both margins are independent of each other. There are different
+specifications depending on the application field. For example, stringent
+certifications requirements in aerospace require at least 6\,dB gain margin and
+60\,deg phase margin. These requirements also serve as a basis for the
+controller analysis in this article. While these margins are of great
+practical importance, they can overlook destabilizing combinations of gain and
+phase that independently are considered safe. It is therefore important to
+take into account simultaneous gain and phase variations. The corresponding
+metric is known as disk margin and can be calculated from $S_i-T_i$ and $S_{\text{o}}
+- T_{\text{o}}$, where $T_{\text{o}}$ is the output complementary sensitivity function,
+for the inputs and the outputs of the plant, respectively \cite{blight94}. They
+are easily extended to the multivariable case, allowing for simultaneous
+perturbation of several loops. An input-output disk margin is obtained by
+breaking the loops at all inputs and all outputs at the same time, considering
+simultaneous perturbation of all signals. This is the most conservative
+approach to analyze the stability margins. It may seem overly conservative for the
+example in this paper, as the same type of load sensors and actuators
+are used in each of the four loops. It is, however, a valuable certificate
+for robustness of the system.
+
+The resulting margins evaluated between 12 and 25\,m/s wind speed with a step size of 1\,m/s
+are depicted in Fig.~\ref{fig:margins}. 
+The margins vary depending on the wind speed but are satisfactory in all wind scenarios,
+The worst cases for all gain margins are found at maximum wind speed, where the classical gain as well
+as the disk margins shows values of approximately 4.8\,dB and the multi-input multi-output margins
+shows a value of around 2.5\,dB which is considered as satisfactory. The classical phase margins
+slightly falls below 70deg at 12\,m/s thereby showing a very robust behavior.
+
+\begin{figure}[hbt]
+	\centering
+	\input{./tikz/margins_comb.tikz}
+	\caption{Determined classical (\ref{line:m3}), disk (\ref{line:m2}) and multi-input multi-output  (\ref{line:m1}) margins of the designed controller over wind speed.}
+	\label{fig:margins}	
+\end{figure}
+
+The margins are compared to the proposed $H_\infty$ design presented in \cite{}. In that paper it was argued that a 
+gain scheduled or LPV design could improve the margins which whre considered a bit low at high wind speeds.
+The presented margins herein confirm that using the LPV approach the worst case margins can be improved, as all worst cases
+in the LPV case lie clearly above the values provided by the $H_\infty$ controller.
+
+
+
+
+\subsection{Nonlinear Simulations}
+For the nonlinear validation of the developed controller a nonlinear simulation model of the Clipper in FAST \cite{Fastv7_05} is available. The overall model features a detailed structural model. In this analysis the first bending modes of the shaft, of the tower in side-to-side and fore-aft direction, and of the baldes in edgewise and flapwise direction are included.
+Linear first order models for actuators and sensors are included. The generator dynamics are neglected. The first scenarios
+are simple step responsed testing the steady state behavior, followed by turbulent winds. The latter are used first to
+verify the laod mitigation at different frequency using power spectral densities followed by a statistical analysis
+of the to quantify the load reduction capabilities of the controller.
+
+\subsubsection*{Step responses}
+The behavior of the developed controller is first tested with using step-like responses over
+the whole wind speed range using the nonlinear FAST model of the Clipper turbine. 
+Starting at 12\,m/s the wind speed is increased every 50s by 2\,m/s within 2s until reaching 25\,m/s.
+In Fig.~\ref{fig:t_sim}	the responses between 18\,m/s and  25\,m/s are depicted. In the first diagram,
+the blade flapwise bending moment is shown. With the use of the LPV controller a reduction of the oscillation
+is visible. In the second diagram the yawing moment of the nacelle, measured at the bearing between the
+tower and the nacelle is depicted. Amplitude-wise, a small reduction of that moment can be seen, although 
+not clearly visible. (ARGUMENT WARUM DER MITTELWERT KONSTANT BLEIBT??? Tower shaddow?).
+Finally the last diagram shows the pitch angle of the first blade. Compared to the baseline controller,
+the LPV controller demands the additional sinusoidal commands to be able to suppress the periodic loads.
+\begin{figure}[hbt]
+	\centering
+	\input{./tikz/t_sim.tikz}
+	\caption{Time series comparison of the baseline controller (\ref{line:stat1}) and the LPV controller (\ref{line:stat2})for step changes in wind.}
+	\label{fig:t_sim}	
+\end{figure}
+
+
+\subsubsection*{Power spectral densities under turbulence wind}
+Further insight in the load reduction capabilities at certain frequencies can be obtained
+when power spectral densities (PSD) are considered.
+A turbulence level of 7\,\% in all three directions is applied. The wind field
+has been generated using the freely available Turbsim software \cite{TurbSim12}.
+Besides the baseline controller, a state-of-practice individual blade-pitch controller is used for comparison.
+The controller consists of two decoupled SISO integral compensators of the form $\frac{0.001}{s}$, leading to an open loop bandwidth (0dB crossing) at around 0.25$\,$rad$/$s.
+In the upper left diagram of Fig.~\ref{fig:frequ} the PSD of the blade bending moment for a wind
+speed of 20\,m/s with a turbulence of 7\,\% in all three directions are depicted. The simulations results for the baseline
+controller without individual blade-pitch control show a high peak at the 1P
+frequency around 1.6\,rad/s. Around the 2P frequency (4.8\,rad/s), an increased loading is present,
+which can be seen in the lower diagram. In comparison, the classical individual blade-pitch
+controller that uses two integral feedback loops is able to mitigate the 1P
+load very well. The LPV controller developed in this paper also
+achieves this reduction in the 1P load but additionally also reduces the 2P
+loads on the blades.
+The reduction of loads at higher frequencies is confirmed when analyzing the
+loads that act on the non-rotating frame, namely the yaw and pitch loading on
+the nacelle in the two diagrams on the right in Fig.~\ref{fig:frequ}.
+The 1P blade loads appear as a constant load in the non-rotating frame.
+Just as the 1P load on the blades, this load
+is mitigated well by both individual blade-pitch controllers. The 2P load on the blades produces a
+dominant 3P load in the fixed frame. This load is suppressed only by the
+LPV controller.
+Suppressing this load of course requires higher activity of the blade
+pitch actuation system, depicted in the lower left diagram of Fig.~\ref{fig:frequ}. For low
+frequencies ($<$0.6\,rad/s), all three controllers provide the same pitch
+action, which is due to the dominance of the baseline control law, commanding
+collective pitch action. Around the 1P frequency,  both individual blade-pitch
+controller show an increased control action %due to the integral behavior in the
+% fixed frame
+in order to mitigate the constant load on the nacelle. The multivariable
+controller shows a large 2P control component that is required to mitigate
+the 2P blade loads and the 3P nacelle loads. Note that the y-axis of the plot is in log scale.
+\begin{figure}[hbt]
+	\centering
+	\input{./tikz/frequ.tikz}
+	\caption{Power spectral densities for blade moment, nacelle yaw and pitch moment and blade pitch commands comparing baseline (\ref{line:stat1}), two SISO integral loops (\ref{line:stat2}) and LPV controller (\ref{line:stat3}).}
+	\label{fig:frequ}	
+\end{figure}
+
+
+\subsubsection*{Statistical load validation}
+
+From the resulting simulation data, the damage
+equivalent loads (DELs) are calculated using the freely available software tool
+MCrunch \cite{MCrunch08}. The method of calculating DELs simplifies the process
+of producing fatigue test loads from a design load spectrum, as it can be done
+without specific knowledge of the blade structure or geometry. The only inputs
+needed are the fatigue-load spectrum and fatigue properties of the material
+\cite{freebury00}. The DELs represent a measure of equivalent
+fatigue damage caused by each load and take into account material properties \cite{Bossanyi03a}.
+In this work, S-N slopes of 4 and 10 are used, representative for typical steel and
+composite materials. 
+
+
+To quantify the improvements, the damage equivalent loads on
+the blades and the nacelle are computed. Table xxx presents the loads
+using the baseline control law alone, with classical and with $H_\infty$
+individual blade-pitch control. Both, the two loop integral and the $H_\infty$ controller are able to reduce the
+out-of-plane bending moment on the blades. While the two integral feedback loops
+mainly suppress the constant load in the fixed frame, the
+$H_\infty$ individual blade-pitch controller works over a wider frequency range
+and can therefore reduce the loads even more.
+
+\begin{figure}[hbt]
+	\centering
+	\input{./tikz/laods_stat.tikz}
+	\caption{Statistical validation of the loads for the baseline controller (\ref{line:stat1}), two SISO integral loops (\ref{line:stat2}) and the LPV controller (\ref{line:stat3}).}
+	\label{fig:load_stat}	
+\end{figure}
+
+
+
+\newpage
+\section{Conclusion}
+
+\section{Acknowledgments}
+	This work was performed in the framework of the Xcel Energy Renewable Energy Fund: Contract Number RD4-13.
+	The project title is \textit{Virtual Wind Simulator with Advanced Control \& Aeroelastic Model for Improving the
+		Operation of Wind Farms}. 	
+
+
+
+
+
+
+\bibliographystyle{wileyj}
+\bibliography{BIB_Ossmann}
+%\enlargethispage{-5\baselineskip}
+
+
+\end{document}

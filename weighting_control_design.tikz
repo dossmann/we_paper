@@ -1,0 +1,50 @@
+\usetikzlibrary{positioning,plotmarks, matrix, arrows, calc, shapes}
+\tikzstyle{blockdiag}	= [node distance=5mm, >=stealth', semithick]
+\tikzstyle{block}			= [draw, rectangle, minimum width=1.05cm, minimum 
+height=.8cm]
+\tikzstyle{sum} = [draw,circle,inner sep=0pt, minimum size=6pt]
+\tikzstyle{connector} = [draw,circle,inner sep=0pt, minimum size=2pt, 
+fill=black]
+\tikzstyle{gain} = [draw,regular polygon, regular polygon 	sides=3,thick,minimum height=3em,minimum width=4em, rotate=30]
+\tikzstyle{bguide} = [rectangle,minimum height=3em,minimum	width=4em]
+\tikzstyle{line} = [thick]
+\tikzstyle{branch} = [circle,inner sep=0pt,minimum size=1mm,fill=black,draw=black]
+\tikzstyle{guide} = [anchor=center]
+
+
+\begin{tikzpicture}[blockdiag, auto, scale=0.8]
+
+% Blocks
+\node[block,minimum width=1.25cm, minimum height=1cm](Plant) {$G(s)$};
+\node[sum, left=of Plant, xshift=-.25cm] (Sum1) {};
+\node[block, above=of Sum1] (Wd) {$W_1$};
+
+\node[block, left=of Wd] (Wu) {$\!\!W_u(s)\!\!$};
+\node[connector ] (Con1) at (Wu |- Sum1) {};	
+\node[block, dashed, minimum width=1.25cm, minimum height=1cm,left=of Con1, xshift=-.25cm] (Controller) {$K(s)$};
+\node[branch, left=of Controller, xshift=-0.25cm] (Sum2) {};
+\node[sum, right=of Plant, xshift = .25cm] (Sum3) {}; 
+\node[connector, right=of Sum3, xshift = -0.15cm] (branch1) {}; 
+
+
+\node[block, right=of Wd, xshift = 1.4cm] (Wy) {$W_2$};
+\node[block, above=of Sum2] (Wn) {$W_e(s)$};
+
+% Conncections
+\draw[<-] (Wy.north) -- +(0, +.5cm)node[left, name=e2]{$d_2$};
+\draw[->] (Wu.north) -- +(0, +.5cm)node[left, name=e1]{$e_1$};
+\draw[->] (Plant.east) -- (Sum3) node[pos=0.5, above]{$y$}  node[pos=0.95,below] {$-$};   %MINUS IS HERE
+\draw[-]  (branch1)  -- +(+0cm,-1.0cm) -| (Sum2.south);
+\draw[->] (Sum3) -- +(+1.4cm,-0.0cm);
+\draw[<-] (Sum3) -- (Wy);
+\draw[->] (Wn.north) -- +(0, +.5cm)node[left, name=d2]{$e_2$};
+\draw[<-] (Wd.north) -- +(0, +.5cm)node[left, name=d1]{$d_1$};
+
+\draw[<-] (Wn.south) -- (Sum2.north);
+\draw[->] (Wd.south) -- (Sum1.north);
+\draw[<-] (Wu.south) -- (Con1.north);
+\draw[->] (Sum2.east) node[below right]{} -- (Controller.west);
+\draw[->] (Controller.east) -- (Sum1.west) node[pos=0.2]{$u$};
+\draw[->] (Sum1.east) -- (Plant.west);
+
+;\end{tikzpicture} 

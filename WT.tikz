@@ -1,0 +1,52 @@
+\usetikzlibrary{positioning,plotmarks, matrix, arrows, calc, shapes}
+\tikzstyle{blockdiag}	= [node distance=5mm, >=stealth', semithick]
+% Style for a block
+\tikzstyle{block}	 	  = [draw, rectangle, minimum width=1cm, minimum height=1cm]
+\tikzstyle{sum} = [draw,circle,inner sep=0mm,minimum size=2mm] 
+\tikzstyle{line} = [thick]
+\tikzstyle{branch} = [circle,inner sep=0pt,minimum size=1mm,fill=black,draw=black]  
+
+
+
+
+\begin{tikzpicture}[blockdiag, node distance=1cm,auto,>=stealth]
+
+\node[draw, rectangle, minimum width = 2.8cm, minimum height = 1.5cm] (AC) at (0,0) {Wind Turbine};
+
+\node[draw, rectangle, minimum width = 1.4cm, minimum height = 1cm] (MBC) at (3,-2) {$\frac{2}{3}\,V^T\!(\phi)$}; %{inv(MBC)};
+\node[draw, rectangle, minimum width = 2.8cm, minimum height = 1cm, text width=2.4cm, align=center] (C) at (0,-2) {Individual Blade-Pitch \\  Control};
+\node[draw, rectangle, minimum width = 1.4cm, minimum height = 1cm] (MBCI) at (-3,-2)  {$V(\phi)$}; %{inv(MBC)};
+\node[draw, rectangle, minimum width = 2.8cm, minimum height = 1cm] (PI) at (0,1.5) {Baseline Control};
+\node[sum, right=of PI, xshift=-0.15cm](sum1) {} ;
+\node[sum, left=of AC, yshift=-0.4cm,  xshift=-0.5cm](sum3) {};
+
+
+\draw[->]  (AC.east) ++(0cm,0.5cm)  -- ++(2cm,0cm)  node[pos=0.2,above] {$\omega$} |- (sum1) ;
+\draw[->]  (sum1.west) -- (PI.east) ;
+\draw[->]  (sum1.north) ++(0cm,0.5cm)  -- (sum1.north)  node[pos=0,above] {$\omega_{\text{rated}}$}  node[pos=0.9, left] {$-$}  ;
+\draw[<-]  (AC.west) ++(0cm,0.4cm)  -- (-2cm,0.4cm) |- ($ (PI.west) -(0cm,0.25cm) $)   node[pos=0.65,above] {$\tau_{\text{rated}}$} ;
+%\node[branch, above=of sum3, yshift=-0.2cm](branch2) {};
+
+
+
+\draw[->,double] (sum3.east)  -- ($(AC.west)-(0cm,0.4cm)$) node[pos=0.5,above] {$\beta_{\text{ref}\;[3 \times 1]}$};
+
+
+%\draw[->]  (PI.west) -- ++(-1.8cm,0cm)  node[pos=0.2,above] {$\beta_{c}$} --  (sum3.north) ;
+\draw[->]  ($ (PI.west) +(0cm,0.25cm) $) -|  node[pos=0.16,above] {$\beta_\text{col}$}  (sum3.north) ;
+
+\draw[->,double]  (AC.east) ++(0cm,0cm)  -- ++(2.8cm,0cm)  node[pos=0.27,yshift=-1mm] {$M_{\;[3 \times 1]}$} |- (MBC.east) ;
+%\draw[->]  (AC.east) ++(0cm,-0.5cm)  -- ++(2cm,0cm)  node[pos=0.25,yshift=-1mm] {$\phi$}  -- (MBC.north) ;
+%\draw[->]  (AC.east) ++(0cm,-0.5cm)  -|  (MBC.north)  node[pos=0.25,yshift=-1mm] {$\phi$}  ;
+
+\draw[->]  ($(AC.north east)!.8!(AC.south east)$) -| node[pos=0.12,yshift=-1mm] {$\phi$}  (MBC.north) ;
+\draw[->]  (MBC.west)  ++(0cm,0.3cm) --  node[pos=0.45, yshift=5mm] {$M_{\text{cos}}$}   ($(C.east) +(0cm,0.3cm)$) ;
+\draw[->]  (MBC.west)  ++(0cm,-0.3cm) --  node[pos=0.45, yshift=5mm] {$M_{\text{sin}}$}   ($(C.east) -(0cm,0.3cm)$) ;
+
+\draw[->]  (C.west)++(0cm,0.3cm)  --  node[pos=0.4, yshift=5mm] {$\beta_{\text{cos}}$} ($(MBCI.east)+(0cm,0.3cm) $);
+\draw[->]  (C.west)++(0cm,-0.3cm)  -- node[pos=0.4, yshift=5mm] {$\beta_{\text{sin}}$}   ($(MBCI.east)+(0cm,-0.3cm) $);
+\node[branch, above=of MBC, yshift=-0.6cm](branch1) {};
+\draw[->] (branch1.west) -- ++(0cm,0cm) -| (MBCI);
+\draw[->,double] (MBCI.west) -- ++(-0.5cm,0cm)  |- node[pos=0.7,above] {$\beta_{\text{ind} \;[3 \times 1]}$} (sum3.west);
+
+\end{tikzpicture}
